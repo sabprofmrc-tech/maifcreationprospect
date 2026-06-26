@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pré-saisie fiche prospect — Assurance auto (MAIF)</title>
+<style>
+  :root{
+    --navy:#0A2E6E;--navy-lt:#13418F;--orange:#FF8D43;--orange-dk:#E0701F;
+    --bank:#15639E;--grey:#8A8A86;--line:#CFCCC3;--ok:#1E8E4A;--ko:#C0392B;
+    --field-bg:#fbfbfa;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:#f3f3f1;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#23262e;line-height:1.5;padding:22px;}
+  .wrap{max-width:880px;margin:0 auto;}
+  .band{background:var(--navy);color:#fff;border-radius:12px 12px 0 0;padding:15px 20px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .band h1{font-size:17px;margin:0;font-weight:600;}
+  .band .tag{font-size:11px;font-weight:600;opacity:.92;letter-spacing:.3px;}
+  .panel{background:#fff;border:1px solid #e2e2df;border-top:none;border-radius:0 0 12px 12px;padding:22px 24px;}
+  .scenario{font-size:14px;margin:0 0 6px;}
+  .scenario b{color:var(--navy);}
+  .sec-title{font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin:24px 0 12px;padding-bottom:6px;border-bottom:2px solid #eceae4;}
+
+  /* DOCUMENTS RESSOURCES */
+  .docgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:680px){.docgrid{grid-template-columns:1fr;}}
+  .doc{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff;}
+  .doc .dh{padding:9px 13px;color:#fff;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;letter-spacing:.3px;}
+  .doc.id .dh{background:var(--navy);}
+  .doc.rib .dh{background:var(--bank);}
+  .doc.ren .dh{background:var(--orange-dk);}
+  .doc .db{padding:12px 14px;font-size:12.5px;}
+  .doc .db .row{margin:3px 0;}
+  .doc .db .lbl{color:var(--grey);font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;}
+  .doc .db .val{font-weight:600;}
+  .mrz{font-family:"Courier New",monospace;font-size:10.5px;background:#f4f4f2;border:1px dashed var(--line);border-radius:5px;padding:7px 9px;margin-top:9px;letter-spacing:.5px;word-break:break-all;}
+  .ribtab{width:100%;border-collapse:collapse;margin:7px 0;font-size:11px;}
+  .ribtab th{background:#eef3f8;color:#46566a;font-weight:600;padding:4px 6px;border:1px solid #d9e2ec;text-transform:uppercase;font-size:9.5px;}
+  .ribtab td{padding:5px 6px;border:1px solid #d9e2ec;font-weight:700;}
+  .iban{font-weight:700;letter-spacing:.4px;}
+
+  /* FORMULAIRE */
+  .formapp{border:1px solid #d7d7d3;border-radius:10px;overflow:hidden;margin-top:6px;}
+  .formapp .ftop{background:var(--navy);color:#fff;padding:11px 16px;display:flex;align-items:center;gap:10px;}
+  .formapp .ftop .ic{width:28px;height:28px;border-radius:7px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:15px;}
+  .formapp .ftop h3{margin:0;font-size:14px;font-weight:600;}
+  .formapp .ftop .path{font-size:11px;opacity:.85;margin-top:1px;}
+  .fbody{padding:6px 18px 18px;}
+  .fgroup-t{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.4px;margin:18px 0 4px;}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:560px){.frow{grid-template-columns:1fr;}}
+  .field{margin-top:11px;}
+  .field.full{grid-column:1/-1;}
+  .field label{display:block;font-size:10.5px;color:var(--grey);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+  .field input,.field select{width:100%;border:1px solid #c9c9c4;border-radius:7px;padding:9px 11px;font-size:13.5px;background:var(--field-bg);color:#23262e;font-family:inherit;transition:border-color .15s,box-shadow .15s;}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--navy-lt);box-shadow:0 0 0 3px rgba(19,65,143,.12);background:#fff;}
+  .field.ok input,.field.ok select{border-color:var(--ok);background:#f1faf3;}
+  .field.ko input,.field.ko select{border-color:var(--ko);background:#fdf2f0;}
+  .fb-msg{font-size:11px;margin-top:4px;min-height:13px;}
+  .fb-msg.ok{color:var(--ok);}
+  .fb-msg.ko{color:var(--ko);}
+  .sensitive{font-size:11.5px;color:var(--grey);font-style:italic;margin:16px 0 0;display:flex;align-items:center;gap:6px;}
+
+  /* ACTIONS */
+  .actions{display:flex;gap:12px;justify-content:flex-end;align-items:center;margin-top:20px;flex-wrap:wrap;}
+  .btn{border:none;border-radius:8px;padding:11px 20px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:filter .15s,transform .05s;}
+  .btn:active{transform:translateY(1px);}
+  .btn-check{background:var(--orange);color:#fff;}
+  .btn-check:hover{filter:brightness(1.05);}
+  .btn-ghost{background:#fff;color:var(--navy);border:1px solid #c9c9c4;}
+  .btn-ghost:hover{background:#f4f4f2;}
+  .btn-sol{background:transparent;color:var(--grey);border:1px solid transparent;text-decoration:underline;padding:11px 8px;}
+  .btn-sol:hover{color:var(--navy);}
+
+  /* SCORE */
+  .scorebar{margin-top:18px;border-radius:9px;padding:14px 16px;font-size:14px;display:none;align-items:center;gap:12px;}
+  .scorebar.show{display:flex;}
+  .scorebar.good{background:#f1faf3;border:1px solid #b6e3c4;color:#0f5a2c;}
+  .scorebar.mid{background:#fff7ef;border:1px solid #ffd9b3;color:#8a4b14;}
+  .scorebar .big{font-size:22px;font-weight:800;}
+  @media print{
+    body{background:#fff;padding:0;}
+    .actions,.btn,.scorebar{display:none!important;}
+    .panel,.band{border-radius:0;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="band">
+    <h1>Pré-saisie de la fiche prospect — Assurance auto</h1>
+    <span class="tag">MAIF · espace conseiller</span>
+  </div>
+
+  <div class="panel">
+    <p class="scenario">Une nouvelle prospecte se présente à l'agence pour <b>assurer son véhicule</b>. À partir des <b>documents ressources</b> ci-dessous (carte d'identité, RIB, fiche de renseignements), <b>pré-saisissez sa fiche</b> dans l'outil conseiller, sans erreur de saisie.</p>
+
+    <!-- ============ DOCUMENTS ============ -->
+    <div class="sec-title">📄 Documents ressources</div>
+    <div class="docgrid">
+
+      <!-- Carte d'identité -->
+      <div class="doc id">
+        <div class="dh"><span>CARTE NATIONALE D'IDENTITÉ</span><span>SPÉCIMEN</span></div>
+        <div class="db">
+          <div class="row"><div class="lbl">Nom</div><div class="val">BERNARD</div></div>
+          <div class="row"><div class="lbl">Prénom(s)</div><div class="val">Camille</div></div>
+          <div class="row"><div class="lbl">Sexe / Nationalité</div><div class="val">F · Française</div></div>
+          <div class="row"><div class="lbl">Né(e) le</div><div class="val">14.03.1989</div></div>
+          <div class="row"><div class="lbl">À</div><div class="val">BOULOGNE-BILLANCOURT (92)</div></div>
+          <div class="row"><div class="lbl">N°</div><div class="val">12FR34567 (fictif)</div></div>
+          <div class="mrz">IDFRABERNARD&lt;&lt;CAMILLE&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<br>12FR345678903149F&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;06</div>
+        </div>
+      </div>
+
+      <!-- RIB -->
+      <div class="doc rib">
+        <div class="dh"><span>RELEVÉ D'IDENTITÉ BANCAIRE</span><span>SPÉCIMEN</span></div>
+        <div class="db">
+          <div class="row"><div class="lbl">Titulaire</div><div class="val">Mme Camille BERNARD</div></div>
+          <div class="row"><div class="lbl">Adresse</div><div class="val">27 rue des Tilleuls, 92100 Boulogne-Billancourt</div></div>
+          <table class="ribtab">
+            <tr><th>Banque</th><th>Guichet</th><th>N° compte</th><th>Clé</th></tr>
+            <tr><td>30004</td><td>00005</td><td>00000000000</td><td>12</td></tr>
+          </table>
+          <div class="row"><div class="lbl">IBAN</div><div class="val iban">FR76 3000 4000 0500 0000 0000 123</div></div>
+          <div class="row"><div class="lbl">BIC</div><div class="val">EXEMPLEFRPP</div></div>
+          <div class="row" style="margin-top:5px;font-size:11px;color:var(--grey);">Banque de l'Exemple — Boulogne</div>
+        </div>
+      </div>
+
+      <!-- Fiche de renseignements -->
+      <div class="doc ren" style="grid-column:1/-1;">
+        <div class="dh"><span>FICHE DE RENSEIGNEMENTS — complétée à l'accueil</span><span>à reporter dans le logiciel</span></div>
+        <div class="db">
+          <div class="frow" style="gap:18px;">
+            <div class="row"><div class="lbl">Téléphone</div><div class="val">06 12 34 56 78</div></div>
+            <div class="row"><div class="lbl">E-mail</div><div class="val">camille.bernard@exemple.fr</div></div>
+          </div>
+          <div class="row" style="margin-top:8px;"><div class="lbl">Enfants à charge</div><div class="val">Léa BERNARD (02/09/2016) · Hugo BERNARD (21/06/2019)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ FORMULAIRE ============ -->
+    <div class="sec-title">🖥️ Outil conseiller — pré-saisie</div>
+    <div class="formapp">
+      <div class="ftop">
+        <div class="ic">🚗</div>
+        <div>
+          <h3>Création d'une fiche prospect</h3>
+          <div class="path">Prospects › Nouveau › Assurance auto</div>
+        </div>
+      </div>
+
+      <div class="fbody">
+
+        <div class="fgroup-t">Identité</div>
+        <div class="frow">
+          <div class="field" data-key="civilite" data-type="select">
+            <label>Civilité</label>
+            <select>
+              <option value="">—</option>
+              <option>Madame</option>
+              <option>Monsieur</option>
+            </select>
+            <div class="fb-msg"></div>
+          </div>
+          <div class="field" data-key="nom"><label>Nom</label><input type="text" placeholder="Nom de famille"><div class="fb-msg"></div></div>
+        </div>
+        <div class="frow">
+          <div class="field" data-key="prenom"><label>Prénom</label><input type="text" placeholder="Prénom"><div class="fb-msg"></div></div>
+          <div class="field" data-key="naissance"><label>Date de naissance</label><input type="text" placeholder="JJ/MM/AAAA"><div class="fb-msg"></div></div>
+        </div>
+        <div class="field" data-key="lieu"><label>Lieu de naissance</label><input type="text" placeholder="Ville de naissance"><div class="fb-msg"></div></div>
+
+        <div class="fgroup-t">Coordonnées</div>
+        <div class="field full" data-key="adresse"><label>Adresse (n° et rue)</label><input type="text" placeholder="N° et nom de rue"><div class="fb-msg"></div></div>
+        <div class="frow">
+          <div class="field" data-key="cp"><label>Code postal</label><input type="text" placeholder="00000"><div class="fb-msg"></div></div>
+          <div class="field" data-key="ville"><label>Ville</label><input type="text" placeholder="Ville"><div class="fb-msg"></div></div>
+        </div>
+        <div class="frow">
+          <div class="field" data-key="tel"><label>Téléphone</label><input type="text" placeholder="00 00 00 00 00"><div class="fb-msg"></div></div>
+          <div class="field" data-key="email"><label>E-mail</label><input type="text" placeholder="nom@domaine.fr"><div class="fb-msg"></div></div>
+        </div>
+
+        <div class="fgroup-t">Foyer — enfants à charge</div>
+        <div class="frow">
+          <div class="field" data-key="enf1prenom"><label>Enfant 1 — prénom</label><input type="text" placeholder="Prénom"><div class="fb-msg"></div></div>
+          <div class="field" data-key="enf1date"><label>Date de naissance</label><input type="text" placeholder="JJ/MM/AAAA"><div class="fb-msg"></div></div>
+        </div>
+        <div class="frow">
+          <div class="field" data-key="enf2prenom"><label>Enfant 2 — prénom</label><input type="text" placeholder="Prénom"><div class="fb-msg"></div></div>
+          <div class="field" data-key="enf2date"><label>Date de naissance</label><input type="text" placeholder="JJ/MM/AAAA"><div class="fb-msg"></div></div>
+        </div>
+
+        <div class="fgroup-t">Coordonnées bancaires</div>
+        <div class="field full" data-key="titulaire"><label>Titulaire du compte</label><input type="text" placeholder="Prénom Nom"><div class="fb-msg"></div></div>
+        <div class="frow">
+          <div class="field" data-key="banque"><label>Code banque</label><input type="text" placeholder="5 chiffres"><div class="fb-msg"></div></div>
+          <div class="field" data-key="guichet"><label>Code guichet</label><input type="text" placeholder="5 chiffres"><div class="fb-msg"></div></div>
+        </div>
+        <div class="frow">
+          <div class="field" data-key="compte"><label>N° de compte</label><input type="text" placeholder="11 caractères"><div class="fb-msg"></div></div>
+          <div class="field" data-key="cle"><label>Clé RIB</label><input type="text" placeholder="2 chiffres"><div class="fb-msg"></div></div>
+        </div>
+        <div class="frow">
+          <div class="field" data-key="iban"><label>IBAN</label><input type="text" placeholder="FR76 ..."><div class="fb-msg"></div></div>
+          <div class="field" data-key="bic"><label>BIC</label><input type="text" placeholder="XXXXXXXX"><div class="fb-msg"></div></div>
+        </div>
+        <div class="field full" data-key="domiciliation"><label>Domiciliation (établissement)</label><input type="text" placeholder="Nom de la banque — agence"><div class="fb-msg"></div></div>
+
+        <p class="sensitive">🔒 Données sensibles — saisie chiffrée. En formation, n'utiliser que des coordonnées fictives (RGPD).</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-sol" id="btnSolution">Afficher la correction</button>
+      <button class="btn btn-ghost" id="btnReset">Réinitialiser</button>
+      <button class="btn btn-check" id="btnCheck">Vérifier ma saisie</button>
+    </div>
+
+    <div class="scorebar" id="scorebar">
+      <span class="big" id="scoreBig">0/19</span>
+      <span id="scoreTxt"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Réponses attendues + normalisation tolérante (accents, espaces, casse)
+  const ANSWERS = {
+    civilite:   {expected:["madame"], display:"Madame"},
+    nom:        {expected:["bernard"], display:"BERNARD"},
+    prenom:     {expected:["camille"], display:"Camille"},
+    naissance:  {expected:["14/03/1989"], display:"14/03/1989", date:true},
+    lieu:       {expected:["boulogne-billancourt","boulogne billancourt"], display:"Boulogne-Billancourt"},
+    adresse:    {expected:["27 rue des tilleuls"], display:"27 rue des Tilleuls"},
+    cp:         {expected:["92100"], display:"92100"},
+    ville:      {expected:["boulogne-billancourt","boulogne billancourt"], display:"Boulogne-Billancourt"},
+    tel:        {expected:["0612345678"], display:"06 12 34 56 78", phone:true},
+    email:      {expected:["camille.bernard@exemple.fr"], display:"camille.bernard@exemple.fr"},
+    enf1prenom: {expected:["lea bernard","lea","léa bernard","léa"], display:"Léa BERNARD"},
+    enf1date:   {expected:["02/09/2016"], display:"02/09/2016", date:true},
+    enf2prenom: {expected:["hugo bernard","hugo"], display:"Hugo BERNARD"},
+    enf2date:   {expected:["21/06/2019"], display:"21/06/2019", date:true},
+    titulaire:  {expected:["camille bernard"], display:"Camille Bernard"},
+    banque:     {expected:["30004"], display:"30004"},
+    guichet:    {expected:["00005"], display:"00005"},
+    compte:     {expected:["00000000000"], display:"00000000000"},
+    cle:        {expected:["12"], display:"12"},
+    iban:       {expected:["fr7630004000050000000000123"], display:"FR76 3000 4000 0500 0000 0000 123", iban:true},
+    bic:        {expected:["exemplefrpp"], display:"EXEMPLEFRPP"},
+    domiciliation: {expected:["banque de l'exemple - boulogne","banque de l'exemple boulogne","banque de l exemple - boulogne","banque de l exemple boulogne"], display:"Banque de l'Exemple — Boulogne"}
+  };
+
+  const SOLUTION = {
+    civilite:"Madame", nom:"BERNARD", prenom:"Camille", naissance:"14/03/1989",
+    lieu:"Boulogne-Billancourt", adresse:"27 rue des Tilleuls", cp:"92100", ville:"Boulogne-Billancourt",
+    tel:"06 12 34 56 78", email:"camille.bernard@exemple.fr",
+    enf1prenom:"Léa BERNARD", enf1date:"02/09/2016", enf2prenom:"Hugo BERNARD", enf2date:"21/06/2019",
+    titulaire:"Camille Bernard", banque:"30004", guichet:"00005", compte:"00000000000", cle:"12",
+    iban:"FR76 3000 4000 0500 0000 0000 123", bic:"EXEMPLEFRPP", domiciliation:"Banque de l'Exemple — Boulogne"
+  };
+
+  const TOTAL = Object.keys(ANSWERS).length;
+
+  function norm(s){
+    return (s||"").toString().toLowerCase().trim()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")  // accents
+      .replace(/[—–]/g,"-")  // tirets longs -> tiret simple
+      .replace(/\s+/g," ");
+  }
+  function normLoose(s, def){
+    let v = norm(s);
+    if(def.iban || def.phone) v = v.replace(/\s+/g,"");
+    if(def.date) v = v.replace(/\s+/g,"");
+    return v;
+  }
+
+  function fieldEl(key){ return document.querySelector('.field[data-key="'+key+'"]'); }
+  function inputOf(f){ return f.querySelector('input,select'); }
+
+  function check(){
+    let ok=0;
+    for(const key in ANSWERS){
+      const def = ANSWERS[key];
+      const f = fieldEl(key);
+      if(!f) continue;
+      const val = inputOf(f).value;
+      const msg = f.querySelector('.fb-msg');
+      f.classList.remove('ok','ko'); msg.classList.remove('ok','ko');
+      if(val.trim()===""){ msg.textContent=""; continue; }
+      const cand = normLoose(val, def);
+      const match = def.expected.some(e=>normLoose(e,def)===cand);
+      if(match){ f.classList.add('ok'); msg.classList.add('ok'); msg.textContent="✓ Correct"; ok++; }
+      else { f.classList.add('ko'); msg.classList.add('ko'); msg.textContent="✗ À revoir"; }
+    }
+    const sb=document.getElementById('scorebar');
+    const big=document.getElementById('scoreBig');
+    const txt=document.getElementById('scoreTxt');
+    big.textContent=ok+"/"+TOTAL;
+    sb.classList.add('show');
+    if(ok===TOTAL){ sb.className="scorebar show good"; txt.textContent="Parfait ! Fiche prête à être enregistrée. ✅"; }
+    else { sb.className="scorebar show mid"; txt.textContent="Corrigez les champs marqués « À revoir », puis revérifiez."; }
+    sb.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }
+
+  function reset(){
+    for(const key in ANSWERS){
+      const f=fieldEl(key); if(!f) continue;
+      inputOf(f).value=""; f.classList.remove('ok','ko');
+      f.querySelector('.fb-msg').textContent="";
+    }
+    document.getElementById('scorebar').classList.remove('show');
+  }
+
+  function solution(){
+    for(const key in SOLUTION){
+      const f=fieldEl(key); if(!f) continue;
+      inputOf(f).value=SOLUTION[key];
+      f.classList.add('ok'); 
+      const m=f.querySelector('.fb-msg'); m.className="fb-msg ok"; m.textContent="✓";
+    }
+    const sb=document.getElementById('scorebar');
+    sb.className="scorebar show good";
+    document.getElementById('scoreBig').textContent=TOTAL+"/"+TOTAL;
+    document.getElementById('scoreTxt').textContent="Correction affichée.";
+  }
+
+  document.getElementById('btnCheck').addEventListener('click',check);
+  document.getElementById('btnReset').addEventListener('click',reset);
+  document.getElementById('btnSolution').addEventListener('click',function(){
+    if(confirm("Afficher la correction complète ?")) solution();
+  });
+</script>
+</body>
+</html>
